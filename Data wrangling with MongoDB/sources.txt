@@ -1,0 +1,4 @@
+Sources:
+
+lectures from Udacity regarding MongoDB and data wrangling
+Udacity forum
