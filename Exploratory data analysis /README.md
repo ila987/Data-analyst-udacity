@@ -7,14 +7,14 @@ In this project I have analysed information about white wine. This tidy dataset 
 
 ## To run the code
 
-This project requires Python 2.7 and the following Python libraries installed:
+This project requires R and the following libraries installed:
 
-NumPy
-Pandas
-matplotlib
-scikit-learn
-You will also need to have software installed to run and execute an iPython Notebook.
+knitr
+ggplot2
+GGally
+dplyr
+gridExtra
 
-Udacity recommends our students install Anaconda, a pre-packaged Python distribution that contains all of the necessary libraries and software for this project.
+You will also need to have software RStudio installed to run and execute the Rmd file.
 
 You can open the .html file to have an idea of what has been done. To check the detailed analysis have a look at the project_whitewine.Rmd
