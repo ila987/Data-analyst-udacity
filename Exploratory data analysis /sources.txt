@@ -1,0 +1,7 @@
+Sources:
+
+lectures from Udacity regarding EDA
+Udacity forum
+generic info about white wine http://www.wineskills.co.uk/winemaking/winemaking-knowledge-base/chemical-composition
+https://en.wikipedia.org/wiki/White_wine
+https://en.wikipedia.org/wiki/Wine_chemistry

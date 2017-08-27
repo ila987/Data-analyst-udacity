@@ -1,0 +1,688 @@
+White wine analysis by Ilaria Tavecchia
+========================================================
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using in your analysis in this code
+# chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk. This
+# prevents the code from displaying in the knitted HTML output. You should set
+# echo=FALSE for all code chunks in your file, unless it makes sense for your
+# report to show the code that generated a particular plot.
+
+# The other parameters for "message" and "warning" should also be set to FALSE
+# for other code chunks once you have verified that each plot comes out as you
+# want it to. This will clean up the flow of your report.
+library(knitr)
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(gridExtra)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+pf <- read.csv('wineQualityWhites.csv')
+pf$X <- NULL
+#names(pf)
+
+```
+
+#Information about the data
+This dataset contains information about white wine. This tidy dataset contains 
+4,898 white wine with 11 variables on quantifying the chemical properties of 
+each wine. At least 3 wine experts rated the quality of each wine, providing a 
+rating between 0 (very bad) and 10 (excellent).
+
+# Univariate Plots Section
+
+First of all, let's have a look at the data. All our columns are numeric, as 
+well as the quality column that contains the wine evaluation. We have 
+added a new column called quality_cat, that summarises the quality in 3 values: 
+Low for quality below 4, medium for quality between 5 and 8 and high for 
+everything above 8. Further in our analysis we will just focus on Low and High, 
+considering that they contain roughly the same amount of values. Some descriptive
+statistics are shown as well below. 
+
+```{r Univariate_Plots}
+#create a variable as an ordered factor
+pf$quality_cat <-ifelse(pf$quality<=4, "Low", 
+                        ifelse(pf$quality>=8, "High", "Medium"))
+
+pf$quality_cat <-ordered(pf$quality_cat, levels = c("Low", "Medium", "High"))
+
+summary(pf)
+
+
+```
+
+
+First of all, let's have a look at the distribution for all our variables.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p1 <- qplot(data =pf, x = volatile.acidity) + 
+  xlab("volatile acidity (acetic acid - g / dm^3)")
+p2 <- qplot(data =pf, x = citric.acid) + xlab("citric acid (g / dm^3)")
+p3 <- qplot(data =pf, x = residual.sugar) + xlab("residual sugar (g / dm^3)")
+p4 <- qplot(data =pf, x = chlorides) + xlab("chlorides (sodium chloride - g / dm^3")
+p5 <- qplot(data =pf, x = free.sulfur.dioxide) + xlab("free sulfur dioxide (mg / dm^3)")
+p6 <- qplot(data =pf, x = total.sulfur.dioxide) + xlab("total sulfur dioxide (mg / dm^3)")
+p7 <- qplot(data =pf, x = density) + xlab("density (g / cm^3)")
+p8 <- qplot(data =pf, x = pH) + xlab("pH")
+p9 <- qplot(data =pf, x = sulphates) +xlab("sulphates (potassium sulphate - g / dm3)")
+p10 <- qplot(data =pf, x = alcohol) + xlab("alcohol (% by volume)")
+p11 <- qplot(data =pf, x = quality)+ geom_bar()  + xlab("quality (score between 0 and 10)")
+p12 <- qplot(data =pf, x = quality_cat) 
+```
+
+The first distribution we are going to analyse is about volatile acidity, citric.acid and residual of sugar. 
+
+```{r}
+grid.arrange(p1,p2,p3, ncol=1)
+```
+
+For the first two we can notice that some values are present in the tail. 
+This is why we have added a boxplot to better investigate outliers both for 
+acidity and citric acid. Boxplot can be very useful to visualize 
+information that can be more difficult to find in a histogram. As you can 
+notice, with this other plot type is much easier to have an idea of how many 
+outliers we have for each tail.
+
+```{r}
+p1a <- ggplot(pf, aes(y = volatile.acidity, x = 1)) +
+        geom_boxplot(outlier.color = "red") + coord_flip() +
+  xlab("acetic acid - g / dm^3")
+
+grid.arrange(p1, p1a, ncol=1)
+
+```
+
+
+```{r}
+p21 <- ggplot(pf, aes(y = citric.acid, x = 1)) + 
+  geom_boxplot(outlier.color = "red") + coord_flip()+
+ xlab("citric acid (g / dm^3)")
+
+grid.arrange(p2, p21, ncol=1)
+```
+
+Back to the distribution analysis: here for chlorides, free and total sulfur. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(p4,p5,p6, ncol= 1)
+```
+
+A closer analysis to the outliers in chlorides and free sulfur dioxide:
+
+```{r}
+p41 <- ggplot(pf, aes(y = chlorides, x = 1)) +
+        geom_boxplot(outlier.color = "red") + coord_flip()+
+   xlab("chlorides (sodium chloride - g / dm^3")
+
+grid.arrange(p4, p41, ncol=1)
+
+```
+
+```{r}
+p51 <- ggplot(pf, aes(y = free.sulfur.dioxide, x = 1)) +
+        geom_boxplot(outlier.color = "red") + coord_flip()+
+  xlab("free sulfur dioxide (mg / dm^3)")
+
+grid.arrange(p5, p51, ncol=1)
+```
+
+Next chunk of distribution is about density, pH and sulphates. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(p7,p8,p9, ncol= 1)
+```
+
+Let's have a better look at the outliers for pH and sulphates.
+
+```{r}
+p81 <- ggplot(pf, aes(y = pH, x = 1)) +
+        geom_boxplot(outlier.color = "red") + coord_flip()
+
+grid.arrange(p8, p81, ncol=1)
+```
+
+```{r}
+p91 <- ggplot(pf, aes(y = sulphates, x = 1)) +
+        geom_boxplot(outlier.color = "red") + coord_flip() +
+  xlab("sulphates (potassium sulphate - g / dm3)")
+
+grid.arrange(p9, p91, ncol=1)
+```
+
+Then, the last distributions about alcohol, quality and the new variable
+quality_cat. Here no outliers are identified. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+grid.arrange(p10,p11,p12, ncol = 1)
+```
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+The dataset contains 11 features, all numerical, and one variable called quality, 
+that represents how good or bad each wine is. A new categorical variable, 
+quality_cat, has been added to the dataset to differentiate between Low, Medium 
+and High quality instead of considering a full scale from 1 to 9.
+
+### What is/are the main feature(s) of interest in your dataset?
+From a first analysis we can notice that several variables seem of interest: 
+alcohol level, residual of sugar and volatile acidity show some interesting 
+pattern.
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+In this first part we have just analysed single variables. In the bivariate 
+analysis we might find interesting patterns between several variables that were 
+not clearly identified here.
+
+### Did you create any new variables from existing variables in the dataset?
+Yes, quality_cat is a new variable derived from quality. It has value:
+
+- "Low" if quality is less or equal to 4,
+
+- "Medium" if quality is between 5 and 7 included,
+
+- "High" if quality is higher or equal to 8.
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+Yes, from what we have seen from histogram several distributions have outliers:
+for all of those we have decided to plot again their histogram next to a boxplot.
+This way identifying outliers is much easier than with a simple histogram.
+
+# Bivariate Plots Section
+
+The below plot represents the distribution of alcohol level for High, Low and 
+Medium quality. As we can see, the majority of wines have a middle quality, 
+while few are very good or bad.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+qplot(data =pf, x = alcohol)+ facet_wrap(~quality_cat) +xlab("alcohol (% by volume)")
+```
+
+In the below plot we show graphically how many values each category contains.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+qplot(data =pf, x = quality)+facet_wrap(~quality_cat)
+```
+
+
+To have a better idea about the differences between quality categories, we have 
+done some boxplot. The idea is to find out some discrepancies in mean and median
+between categories for each variables. Let's see if this is the case. 
+
+The first boxplot below shows the alcohol distribution: as we can easily notice 
+there is quite a difference between the average and median alcool level in 
+High and Poor/Medium wine.
+
+```{r}
+qplot(y = alcohol,x= quality_cat, data = pf,
+      geom = 'boxplot')+
+    stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+  ylab("alcohol (% by volume)")
+```
+
+Volatile acidity boxplot: here the difference between High and Low is less clear
+for the median, but we can notice that Low wine have a higher mean compared to 
+High ones. At the same time we can see that the distribution for Low is higher 
+than High wine. Several outliers are present for Medium wine. 
+
+```{r}
+qplot(y = volatile.acidity,x= quality_cat, data = pf,
+      geom = 'boxplot')+  coord_cartesian(ylim = c(0, 0.8))+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+ 
+  ylab("volatile acidity (acetic acid - g / dm^3)")
+```
+
+For fixed acidity and density, it is more complex to identify a clear difference
+in mean and median in each quality.
+
+```{r}
+qplot(y = fixed.acidity,x= quality_cat, data = pf,
+      geom = 'boxplot') +coord_cartesian(ylim = c(3, 10))+ 
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+ 
+  ylab("fixed acidity (tartaric acid - g / dm^3)")
+```
+
+```{r}
+qplot(y = density,x= quality_cat, data = pf,
+      geom = 'boxplot') + coord_cartesian(ylim = c(0.98, 1.01))+ 
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+  ylab("density (g / cm^3)")
+```
+
+The last variable that we are analysing is residual.sugar. Here we can denote differences in the distribution and median values for all categories.
+
+```{r}
+qplot(y = residual.sugar,x= quality_cat, data = pf,
+      geom = 'boxplot') + coord_cartesian(ylim = c(0, 25))+  
+  stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+  ylab("residual sugar (g / dm^3)")
+```
+
+
+First of all let's create a plot that contains all combination of variables with
+their plot and their correlation. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+opts_chunk$set(comment=NA, fig.width=10, fig.height=10)
+
+```
+
+```{r}
+ggpairs(pf)
+```
+
+```{r}
+opts_chunk$set(comment=NA, fig.width=6, fig.height=6)
+```
+
+From the plot above we have decided to focus on the following combiantion of variables:
+
+- Density and residual sugar corr 0.839
+
+- density and alcohol corr -0.78
+
+- total.sulfur.dioxide and free.sulfur.dioxide corr 0.616
+
+- density and total.sulfur.dioxide corr 0.53
+
+- alcohol and residual sugar corr -0.451
+
+- ph and fixed.acidity corr -0.42
+
+- total.sulfur.dioxide and residual sugar corr 0.401
+
+Below we will analyse the ones with the higher correlation. 
+
+Let's start by density and residual sugar: 
+in the plot below the trend is identified by the blue line.
+
+```{r}
+qplot(y = density, x =  residual.sugar,  data = pf)+ geom_point() + 
+  xlim(c(0,20))+
+  geom_point(alpha = 1/5, position  = position_jitter(), color = "orange") + 
+  geom_smooth() +xlab("residual sugar (g / dm^3)")+
+  ylab("density (g / cm^3)")
+```
+
+As well as for the plot of alcohol vs density we can see a linear trend - 
+understanding why they are negative correlated. No particular transformation 
+have been applied, just some outliers were removed.
+
+```{r}
+qplot(y = density, x = alcohol, data = pf)+ ylim(c(0.98,1.01))+
+  geom_point(alpha = 1/5, position  = position_jitter(), color = "orange") + 
+  geom_smooth() +xlab("alcohol (% by volume)") + ylab("density (g / cm^3)")
+
+```
+
+For total vs free sulfur we can also see that there is a relationship. Here on 
+the x asis a square root transformation has been applied as well as some outliers
+have been removed from the visualization. 
+
+
+```{r}
+qplot(y = total.sulfur.dioxide, x =  free.sulfur.dioxide, data = pf)+ 
+  xlim(c(0,200))+
+  geom_point(alpha = 1/5, position  = position_jitter(), color = "orange") + 
+  coord_trans(x = "sqrt") + geom_smooth()+
+  xlab("free sulfur dioxide (mg / dm^3)") + 
+  ylab("total sulfur dioxide (mg / dm^3)")
+```
+
+Also in this plot we can clearly notice a linear trend, confirming what we saw 
+in the initial plot and correlation value. 
+
+```{r}
+qplot(y = density, x =total.sulfur.dioxide , data = pf) + xlim(c(0,300))+ 
+  ylim(c(0.95,1.05))+ 
+  geom_point(alpha = 1/5, position  = position_jitter(), color = "orange") + 
+  geom_smooth() + xlab("total sulfur dioxide (mg / dm^3)") +
+  ylab("density (g / cm^3)")
+
+```
+
+In the next step of our analysis we are going to consider some variables together. 
+We are starting with alcool and residual sugar: we are grouping  values for each
+unit of alcohool (8,9, 10 etc) and then calculate the mean and median for those 
+values.
+
+```{r}
+pf.wine_by_alcohol<- pf %>%
+  group_by(round(alcohol))  %>%
+  summarise(sugar_mean = mean(residual.sugar),
+                         sugar_median = median(residual.sugar),
+            n= n())%>%
+  ungroup() 
+
+tail(pf.wine_by_alcohol)
+```
+
+The below plot is about the mean sugar residual for alcohol levels grouped 
+together. This clearly shows a peak of sugar mean for 9 degree of alcohol, which 
+then decreases as the alcohol increases.
+
+```{r}
+ggplot(aes(x= `round(alcohol)`, y= sugar_mean), data= pf.wine_by_alcohol) +
+  geom_line()
+
+```
+
+Here below the scatterplot for sugar vs alcohol and their trend. 
+
+```{r}
+ggplot(aes(y= residual.sugar, x= alcohol), data= pf) + 
+  geom_point(alpha = 1/5, position  = position_jitter(), color = "orange")+
+  ylim(0,30)+
+  geom_smooth() +ylab("residual sugar (g / dm^3)") +xlab("alcohol (% by volume)")
+
+```
+
+Another analysis we are doing is grouping together density to calculate the mean 
+and median residual sugar. 
+
+```{r}
+pf.wine_by_density<- pf %>%
+  #filter(subset(pf, pf$quality_cat!='Medium')) %>%
+  group_by(round(density, digit=3))  %>%
+  summarise(sugar_mean = mean(residual.sugar),
+                         sugar_median = median(residual.sugar),
+            n= n())%>%
+  ungroup() 
+
+tail(pf.wine_by_density)
+
+```
+
+This plot represents density vs sugar mean value. A clear linear trend is 
+identified here, confirming what we saw in the scatterplot above. 
+
+```{r}
+ggplot(aes(x= `round(density, digit = 3)`, y= sugar_mean), 
+       data= pf.wine_by_density) +
+  geom_line()
+
+```
+
+# Bivariate Analysis
+
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+First of all we have started our bivariate analysis calculating the distribution, 
+plot and correlations for all combination of variables. Considering that we did 
+not know much of this dataset in advance, this gave us the opportunity to focus 
+our initial analysis on some of the features. In particular, we have analysed:
+
+- Density and residual sugar 
+
+- density and alcohol corr 
+
+- total.sulfur.dioxide and free.sulfur.dioxide corr 
+
+- density and total.sulfur.dioxide corr.
+
+For all of those we have found a linear trend that was easy to identify after 
+having done some little adaptation to the plot. 
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+We have also analysed alcohol and sugar values: to do so we have decided to group 
+alcohol levels by unit and calculate for each mean and median. The plot clearly 
+shows that there is a relationship between those two variables. Higher the level 
+of alcohol, lower the sugar level, with a peak around 9. This confirmed what we 
+knew about alcohol and sugar level. 
+
+### What was the strongest relationship you found?
+Between density and sugar level we have found a strong correlation of 0.8, 
+confirmed both by the scatterplot and by the group analysis. 
+
+# Multivariate Plots Section
+
+In this analysis we will take the main variables we considered before and plot 
+them against their quality category. Here we are particularly interested to see 
+if there is a clear division between High and Low wine in each plot. In all plot 
+below we have omitted all medium categories values, showing in yellow the points
+about low quality and in orange the high ones.  
+
+First let's look at density vs residual sugar. Clearly we can see that we could 
+separate almost linearly those two categories: 
+
+- very good wine appear to have mostly low level of residual of sugar and low 
+density
+
+- not good wine have instead a higher level of density even for higher level of 
+sugar.
+```{r echo=FALSE, Multivariate_Plots}
+qplot(y = density, x= residual.sugar, data = subset(pf, pf$quality_cat!='Medium'), 
+      color= quality_cat)+
+geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2))) +
+  xlab("residual sugar (g / dm^3)") + ylab("density (g / cm^3)")
+```
+
+In the next plot we are focusing on density vs alcohol levels. As before, 
+we could clearly separate the values between High and Low quality of wine. Here 
+a higher quality means higher level of alcool and lower density.
+
+```{r echo=FALSE}
+qplot(y = density, x= alcohol, data = subset(pf, pf$quality_cat!='Medium'), 
+      color= quality_cat)+
+geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2)))+
+  ylab("density (g / cm^3)") + xlab("alcohol (% by volume)")
+
+```
+
+In the below plot we have analysed total vs free sulfur dioxide. It's again 
+possible to separate - not linearly this time - higher vs lower quality. 
+
+
+```{r echo=FALSE}
+qplot(y = total.sulfur.dioxide, x= free.sulfur.dioxide, 
+      data = subset(pf, pf$quality_cat!='Medium'), color= quality_cat)+ 
+  xlim(c(0,100))+ geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2)))+
+  xlab("free sulfur dioxide (mg / dm^3)") + 
+  ylab("total sulfur dioxide (mg / dm^3)")
+
+```
+
+Having a look at fixed.acidity vs pH it shows that we cannot always separate the
+data between low and high. In the below plot, it is hard to define a rule, a lot
+of points in the middle are about both low and high quality. 
+
+
+```{r}
+qplot(y = pH, x= fixed.acidity, data = subset(pf, pf$quality_cat!='Medium'), 
+      color= quality_cat)+ 
+geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2)))+
+  xlab("fixed acidity (tartaric acid - g / dm^3)")
+
+```
+
+Another interesting plot is density vs total sulfur. Here we could separate with 
+an hyperplane points that are about the two categories, having high quality wine 
+usually with medium level of sulfur dioxide and not too high density.
+
+
+```{r}
+qplot(y = density, x= total.sulfur.dioxide, 
+      data = subset(pf, pf$quality_cat!='Medium'), color= quality_cat)+ 
+geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2))) +
+  xlab("density (g / cm^3)") + ylab("total sulfur dioxide (mg / dm^3)")
+
+```
+
+Let's now have a look at a similar analysis we did already before. 
+Here we will focus on density and residual sugar mean considering as well 
+different quality. 
+
+
+```{r}
+pf.fc_by_density_quality<- pf %>%
+  group_by(round(density, digit=3), quality_cat)  %>%
+  summarise(sugar_mean = mean(residual.sugar),
+                         sugar_median = median(residual.sugar),
+            n= n())%>%
+  ungroup() %>%
+  arrange(quality_cat)
+
+head(pf.fc_by_density_quality)
+
+```
+
+As we can see from the plot below, the mean value of sugar are different between
+low and high quality. 
+
+```{r}
+ggplot(aes(x= `round(density, digit = 3)`, y= sugar_mean), 
+       data= subset(pf.fc_by_density_quality, quality_cat!='Medium')) +
+geom_line(aes(color= quality_cat))
+```
+
+At the same time we have grouped by alcohol, considering as well quality. 
+
+```{r}
+pf.wine_by_alcohol_quality<- pf %>%
+  group_by(round(alcohol), quality_cat)  %>%
+  summarise(sugar_mean = mean(residual.sugar),
+                         sugar_median = median(residual.sugar),
+            n= n())%>%
+  ungroup()%>%
+  arrange(quality_cat)
+
+head(pf.wine_by_alcohol_quality)
+
+
+```
+
+Here as well, we can see a difference between the mean value of high and low 
+qualities. 
+
+```{r}
+ggplot(aes(x= `round(alcohol)`, y= sugar_mean), 
+       data= subset(pf.wine_by_alcohol_quality, quality_cat!='Medium')) +
+geom_line(aes(color= quality_cat))
+```
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+In this part of the analysis we focused mostly on analysing the relationship 
+between Low and High quality wine. Considering that those two categories contain 
+a similar amount of data, we have just taken  them in consideration, trying to 
+find a clear pattern between the best and worst wine. It is clear that some 
+variables play an important role in defining best and worst wine. Several plots,
+like density vs alcohol or density vs residual sugar, show how we can clearly 
+separate high vs low qualities. 
+
+### Were there any interesting or surprising interactions between features?
+It was interesting to see that some variables separate better than others the two
+categories. At the same time, it was interesting to confirm some trends that we 
+noticed already in the bivariate analysis. 
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+qplot(y = alcohol,x= quality_cat, data = pf,
+      geom = 'boxplot', main = "Boxplot alcohol by quality cat")+
+    stat_summary(fun.y=mean, geom="point", shape=23, size=4)+
+  xlab("quality category")+
+  ylab("alcohol (% by volume)")
+```
+
+```{r}
+summary(pf$alcohol)
+```
+
+### Description One
+This plot is a boxplot of alcohol for each different quality low, medium, high. 
+This plot is very informative because we can see the distribution for each class, 
+its mean and median and if outliers are present. It also shows us a clear 
+difference between high level wine and low/medium ones.
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+qplot(y = density, x= residual.sugar, data = subset(pf, pf$quality_cat!='Medium'), 
+      main = "Density vs residual sugar in low and high wine types", 
+      color= quality_cat)+ 
+  geom_point(alpha = 0.15, size = 2, position = 'jitter') + 
+  scale_color_brewer(type = 'div', palette = 'RdYlBu', 
+                     guide = guide_legend(title = 'Quality', reverse = T,
+    override.aes = list(alpha = 1, size = 2)))+
+  xlab("residual sugar (g / dm^3)") + 
+  ylab("density (g / cm^3)")
+```
+
+### Description Two
+This scatterplot gives us information about the relationship of density vs
+residual sugar. It is very informative because we can clearly divide the two 
+classes of wine Low and High with a simple line. It gives us an insight on the 
+possible use of a classifier. A SVM could be used to find a hyperplane to divide 
+the two classes of data. 
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+ggplot(aes(x= `round(alcohol)`, y= sugar_mean), 
+       data= subset(pf.wine_by_alcohol_quality, quality_cat!='Medium')) + 
+  ggtitle("Average residual sugar per alcohol in low and high wine types")+
+geom_line(aes(color= quality_cat))
+```
+
+### Description Three
+
+The third graph that I am using here it is a line plot about average residual of 
+sugar for alcohol unit. Here we are plotting just information about high and low
+quality and we can see a difference till degree 13 for those two types of wine.
+
+------
+
+# Reflection
+
+It was very interesting analysing this dataset. I like drinking wine when I hang
+out with friends and I could tell when a wine is good or not. Till now I was not 
+really aware of all chemical properties that we can find in wine and how they do 
+play a role in its quality. 
+In the beginning it was complicated to start, since I didn't know much about 
+this dataset . Once I got more familiar with it, I could find more interesting 
+things.
+Now I have a better idea on what influences  having a good wine instead of a bad 
+one. In chemical terms, I can definitely find a correlation between density 
+vs alcohol, residual sugar and total.sulfur.dioxide. At the same time the 
+relationship between alcohol and residual sugar is clear and shows a clear pattern.
+
+For future work, it would be interesting to explore more the analysis on chemical 
+properties, but we could add more value having more generic information about the data
+, like type of wine, where it grows, temperature, etc. Like that the analysis
+would be more complete, not just focusing on chemical compounds that not everyone
+is well aware of, but as well more tangible facts. 
