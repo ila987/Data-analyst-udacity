@@ -22,8 +22,6 @@ dataset['Age'][is.na(dataset['Age'])]<- median(dataset$Age, na.rm= TRUE)
 dataset['Fare'][is.na(dataset['Fare'])] <- colMeans(test_set['Fare'], na.rm= TRUE)
 dataset$Embarked[which(dataset$Embarked %in% '')] <- 'C'
 
-dataset$Embarked <- droplevels (dataset$Embarked)
-
 
 #add new features
 dataset$hasCabin<- ifelse(dataset$Cabin %in% '', 0, 1)
@@ -78,8 +76,6 @@ ggplot(rankImportance, aes(x = reorder(Variables, Importance),
 
 # Predicting the Test set results
 y_pred <- predict(classifier, test_set[-2], type='class')
-
-
 
 #write result to csv
 result <- data.frame(PassengerID = test_set$PassengerId, Survived = y_pred)
